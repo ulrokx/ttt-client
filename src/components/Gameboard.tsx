@@ -19,10 +19,14 @@ const lines = [
 ];
 
 export const Gameboard: React.FC = () => {
-    const {position} = useContext(UserContext)
+    const { position } = useContext(UserContext);
     const [boardState, setBoardState] = useState(Array(10).fill(null));
 
     const [turn, setTurn] = useState("x");
+
+    const [turnCount, setTurnCount] = useState(0);
+
+    const [tie, setTie] = useState(false);
 
     const [winner, setWinner] = useState<null | string>(null);
 
@@ -30,9 +34,10 @@ export const Gameboard: React.FC = () => {
 
     const [playing, setPlaying] = useState(false);
 
-    const [letter, setLetter] = useState<null | "x" | "o">(null)
+    const [letter, setLetter] = useState<null | "x" | "o">(null);
 
     const checkWin = (board: Array<string | null>) => {
+        setTurnCount(turnCount + 1);
         lines.forEach((line) => {
             if (
                 board[line[0]] === board[line[1]] &&
@@ -40,10 +45,8 @@ export const Gameboard: React.FC = () => {
                 board[line[0]] !== null
             ) {
                 setWinner(board[line[0]]);
-                setPlaying(false)
+                setPlaying(false);
                 setLiney(line);
-            } else {
-                return;
             }
         });
     };
@@ -52,41 +55,54 @@ export const Gameboard: React.FC = () => {
         checkWin(boardState);
     }, [boardState]);
 
+    useEffect(() => {
+        if (turnCount >= 9) {
+            setTie(true);
+        }
+    }, [turnCount]);
+
     const handleClick = (id: number) => {
         // we don't mutate around here -_-
         if (!playing) return;
-        if(letter !== turn) return;
+        if (letter !== turn) return;
         if (winner !== null) return;
         const newState = boardState.slice();
         newState[id] = turn;
         setBoardState(newState);
         setTurn(turn === "x" ? "o" : "x");
-        socket.emit("clientmove", {id: id})
+        socket.emit("clientmove", { id: id });
     };
 
     socket.on("game", (arg) => {
         setPlaying(arg.start);
         setTurn(arg.move);
-        setLetter(arg.first === position ? "x" : "o")
+        setLetter(arg.first === position ? "x" : "o");
     });
 
-    socket.on("servermove", arg => {
-        setTurn(turn === "x" ? "o" : "x")
+    socket.on("servermove", (arg) => {
+        setTurn(turn === "x" ? "o" : "x");
         const newState = boardState.slice();
-        newState[arg.id] = letter === "x" ? "o" : "x"
-        setBoardState(newState)
-    })
+        newState[arg.id] = letter === "x" ? "o" : "x";
+        setBoardState(newState);
+    });
 
     return (
         <>
             {playing ? (
-                <StandardText>it is {turn} turn to play, you are {letter}</StandardText>
-            ) : winner ? <StandardText>{winner} is the winner!!</StandardText> : null}
+                <StandardText>
+                    it is {turn} turn to play, you are {letter}
+                </StandardText>
+            ) : winner ? (
+                <StandardText>{winner} is the winner!!</StandardText>
+            ) : tie ? (
+                <StandardText>it's a tie :|</StandardText>
+            ) : null}
             <BoardWrapper>
                 {Array.from({ length: 9 }, (_, i) => i + 1).map(
-                    (id: number) => {
+                    (id: number, i) => {
                         return (
                             <SquareTile
+                                key={i}
                                 isLine={!!liney?.includes(id)}
                                 id={id}
                                 display={boardState[id]}

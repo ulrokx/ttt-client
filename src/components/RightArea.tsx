@@ -21,7 +21,7 @@ export const RightArea: React.FC<RightAreaProps> = () => {
 
 
         return (<>
-            <TitleText>Connected users:</TitleText>
+            {users.length > 0 ? <TitleText>Connected users:</TitleText> : null}
             <UserList>
             {users?.map((u, i)  => {
             return    <UserItem key={i}>{u}</UserItem>
