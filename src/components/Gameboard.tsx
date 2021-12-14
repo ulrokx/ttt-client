@@ -1,6 +1,7 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { memo, useContext, useEffect, useMemo, useState } from "react";
 import { socket } from "../socket/socket";
 import { BoardWrapper } from "../styled/BoardWrapper";
+import { Button } from "../styled/Button";
 import { FlexDiv } from "../styled/FlexDiv";
 import { StandardText } from "../styled/Text";
 import { UserContext } from "../utils/UserContext";
@@ -22,6 +23,8 @@ export const Gameboard: React.FC = () => {
     const { position } = useContext(UserContext);
     const [boardState, setBoardState] = useState(Array(10).fill(null));
 
+    const [waiting, setWaiting] = useState(false);
+
     const [turn, setTurn] = useState("x");
 
     const [turnCount, setTurnCount] = useState(0);
@@ -30,7 +33,7 @@ export const Gameboard: React.FC = () => {
 
     const [winner, setWinner] = useState<null | string>(null);
 
-    const [liney, setLiney] = useState<Array<number>>();
+    const [liney, setLiney] = useState<Array<number> | null>();
 
     const [playing, setPlaying] = useState(false);
 
@@ -50,6 +53,8 @@ export const Gameboard: React.FC = () => {
             }
         });
     };
+
+    const memoCheck = useMemo(() => checkWin(boardState), [boardState]);
 
     useEffect(() => {
         checkWin(boardState);
@@ -86,6 +91,18 @@ export const Gameboard: React.FC = () => {
         setBoardState(newState);
     });
 
+    socket.on("playagain", (arg) => {
+        setBoardState(Array(10).fill(null));
+        setWaiting(false);
+        setTurn("x");
+        setTurnCount(0);
+        setTie(false);
+        setWinner(null);
+        setLiney(null);
+        setPlaying(true);
+        setLetter(arg.first === position ? "x" : "o");
+    });
+
     return (
         <>
             {playing ? (
@@ -96,6 +113,18 @@ export const Gameboard: React.FC = () => {
                 <StandardText>{winner} is the winner!!</StandardText>
             ) : tie ? (
                 <StandardText>it's a tie :|</StandardText>
+            ) : waiting ? (
+                <StandardText>waiting for other player...</StandardText>
+            ) : null}
+            {!playing && boardState.includes("x") ? (
+                <Button
+                    onClick={() => {
+                        socket.emit("game:again");
+                        setWaiting(true);
+                    }}
+                >
+                    play again
+                </Button>
             ) : null}
             <BoardWrapper>
                 {Array.from({ length: 9 }, (_, i) => i + 1).map(

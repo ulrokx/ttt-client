@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 let socketlink = "";
 if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-    socketlink = "localhost:4000"
+    socketlink = "http://localhost:4000"
 } else {
     socketlink = "https://arcane-fjord-05208.herokuapp.com/"
 }

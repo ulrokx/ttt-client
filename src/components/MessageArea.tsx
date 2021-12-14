@@ -24,7 +24,7 @@ export const MessageArea: React.FC = () => {
             sender: currentUser,
         });
         setMsg("");
-        setMessages([...messages, { msg: msg, sender: currentUser }]);
+        setMessages([{ msg: msg, sender: currentUser }, ...messages ]);
     };
     const [messages, setMessages] = useState<any>([]);
     const [msg, setMsg] = useState("");
