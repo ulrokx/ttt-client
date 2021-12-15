@@ -21,6 +21,9 @@ export const MessageArea: React.FC = () => {
     const sendMessage = (e: any) => {
         console.log("sending message, ", { msg: msg, sender: currentUser });
         e.preventDefault();
+        if(msg.length < 1) {
+            return;
+        }
         socket.emit("messagesend", {
             msg: msg,
             sender: currentUser,

@@ -63,6 +63,7 @@ export const Gameboard: React.FC = () => {
     const [letter, setLetter] = useState<null | "x" | "o">(null);
 
     const checkWin = useCallback((board: Array<string>[] | any) => {
+        const currentTurns = turnCount;
         setTurnCount(turnCount + 1);
         console.log("checking for win", board);
         lines.forEach((line) => {
@@ -75,7 +76,7 @@ export const Gameboard: React.FC = () => {
                 setWinner(board[line[0]]);
                 setPlaying(false);
                 setLiney(line);
-            } else if (turnCount > 9) {
+            } else if (currentTurns + 1 >= 9) {
                 setTie(true);
                 setPlaying(false);
             }

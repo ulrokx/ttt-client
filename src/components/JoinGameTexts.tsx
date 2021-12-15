@@ -30,7 +30,7 @@ export const JoinGameTexts: React.FC<JoinGameTextsProps> = () => {
             {!auth ? <> <FlexDiv>
                 <TextInput value={name} onChange={(v) => setName(v.target.value)} placeholder="your name"/>
                 <Button onClick={(e) => {
-                    socket.emit("game:join", {nick: name, room: roomCode})
+                    socket.emit("game:join", {nick: name, room: roomCode.toLowerCase()})
                 }}>Connect</Button>
             </FlexDiv>
                 <TextInput value={roomCode} onChange={(v) => setRoomCode(v.target.value)} placeholder="room code"/> </>: null}
