@@ -28,9 +28,11 @@ export const MessageArea: React.FC = () => {
     };
     const [messages, setMessages] = useState<any>([]);
     const [msg, setMsg] = useState("");
+    useEffect(() => {
     socket.on("messagerec", (arg) => {
-        setMessages([arg, ...messages]);
+        setMessages([...messages, arg]);
     });
+}, [messages]);
     if (!currentUser) return null;
     return (
         <>
@@ -53,7 +55,7 @@ export const MessageArea: React.FC = () => {
                 </form>
             </FlexDiv>
             <MessageBox>
-                {messages.map(
+                {messages.reverse().map(
                     (
                         m: {
                             sender: string
@@ -65,7 +67,7 @@ export const MessageArea: React.FC = () => {
                             {m.sender}: {m.msg}
                         </StandardText>
                     )
-                ).reverse()}
+                )}
             </MessageBox>
         </>
     );

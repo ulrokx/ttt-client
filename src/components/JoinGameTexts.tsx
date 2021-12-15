@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { socket } from '../socket/socket';
 import { Button } from '../styled/Button';
 import { FlexDiv } from '../styled/FlexDiv';
@@ -17,11 +17,13 @@ export const JoinGameTexts: React.FC<JoinGameTextsProps> = () => {
     const [roomCode, setRoomCode] = useState("")
     const [response, setResponse] = useState("")
 
+    useEffect(() => {
     socket.on("game:join:good", (arg) => {
         setResponse(arg.msg)
         updatePosition(arg.position)
         updateCurrentUser(arg.username)
     })
+}, [updateCurrentUser, updatePosition])
 
         return (
 <>

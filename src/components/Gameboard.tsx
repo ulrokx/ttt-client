@@ -1,12 +1,7 @@
 import React, {
-    memo,
-    Reducer,
     useCallback,
     useContext,
-    useEffect,
-    useMemo,
-    useReducer,
-    useState,
+    useEffect, useState
 } from "react";
 import { socket } from "../socket/socket";
 import { BoardWrapper } from "../styled/BoardWrapper";
@@ -76,6 +71,7 @@ export const Gameboard: React.FC = () => {
                 board[line[1]] === board[line[2]] &&
                 board[line[0]] !== null
             ) {
+                console.log("board condieitons met")
                 setWinner(board[line[0]]);
                 setPlaying(false);
                 setLiney(line);

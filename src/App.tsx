@@ -1,4 +1,3 @@
-import React from "react";
 import { Gameboard } from "./components/Gameboard";
 import { RightArea } from "./components/RightArea";
 import { LayoutColumns } from "./styled/LayoutColumns";
