@@ -14,8 +14,10 @@ const MessageBox = styled.div`
 `;
 
 export const MessageArea: React.FC = () => {
+    const updateMessages = (arg: string) => {
+        setMessages((m: Array<string>) => [...m, arg])
+    }
     const { currentUser } = useContext(UserContext);
-    useEffect(() => {}, [currentUser]);
     const sendMessage = (e: any) => {
         console.log("sending message, ", { msg: msg, sender: currentUser });
         e.preventDefault();
@@ -24,15 +26,16 @@ export const MessageArea: React.FC = () => {
             sender: currentUser,
         });
         setMsg("");
-        setMessages([{ msg: msg, sender: currentUser }, ...messages ]);
     };
     const [messages, setMessages] = useState<any>([]);
     const [msg, setMsg] = useState("");
+
     useEffect(() => {
     socket.on("messagerec", (arg) => {
-        setMessages([...messages, arg]);
+        updateMessages(arg)
     });
-}, [messages]);
+}, []);
+
     if (!currentUser) return null;
     return (
         <>
@@ -55,7 +58,7 @@ export const MessageArea: React.FC = () => {
                 </form>
             </FlexDiv>
             <MessageBox>
-                {messages.reverse().map(
+                {messages.slice(0).reverse().map(
                     (
                         m: {
                             sender: string
