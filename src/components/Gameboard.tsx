@@ -1,4 +1,13 @@
-import React, { memo, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+    memo,
+    Reducer,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useReducer,
+    useState,
+} from "react";
 import { socket } from "../socket/socket";
 import { BoardWrapper } from "../styled/BoardWrapper";
 import { Button } from "../styled/Button";
@@ -8,6 +17,17 @@ import { UserContext } from "../utils/UserContext";
 import { JoinGameTexts } from "./JoinGameTexts";
 import SquareTile from "./square";
 
+// const initialState = {
+//     boardState: Array(10).fill(null),
+//     isXnext: true,
+//     turnCount: 0,
+//     waitingForAgain: false,
+//     winner: "",
+//     winningLine: [],
+//     canMove: false
+// }
+
+// type StateType = typeof initialState;
 const lines = [
     [1, 4, 7],
     [2, 5, 8],
@@ -19,8 +39,16 @@ const lines = [
     [3, 5, 7],
 ];
 
+// type ActionType = any
+
+// const reducer: Reducer<StateType, ActionType> = (state: StateType, action) => {
+
+// }
+
 export const Gameboard: React.FC = () => {
     const { position } = useContext(UserContext);
+
+    // const [state, dispatch] = useReducer(reducer, initialState);
     const [boardState, setBoardState] = useState(Array(10).fill(null));
 
     const [waiting, setWaiting] = useState(false);
@@ -39,8 +67,9 @@ export const Gameboard: React.FC = () => {
 
     const [letter, setLetter] = useState<null | "x" | "o">(null);
 
-    const checkWin = (board: Array<string | null>) => {
+    const checkWin = useCallback((board: Array<string>[] | any) => {
         setTurnCount(turnCount + 1);
+        console.log("checking for win", board);
         lines.forEach((line) => {
             if (
                 board[line[0]] === board[line[1]] &&
@@ -50,21 +79,12 @@ export const Gameboard: React.FC = () => {
                 setWinner(board[line[0]]);
                 setPlaying(false);
                 setLiney(line);
+            } else if (turnCount > 9) {
+                setTie(true);
+                setPlaying(false);
             }
         });
-    };
-
-    const memoCheck = useMemo(() => checkWin(boardState), [boardState]);
-
-    useEffect(() => {
-        checkWin(boardState);
-    }, [boardState]);
-
-    useEffect(() => {
-        if (turnCount >= 9) {
-            setTie(true);
-        }
-    }, [turnCount]);
+    }, [turnCount])
 
     const handleClick = (id: number) => {
         // we don't mutate around here -_-
@@ -76,8 +96,9 @@ export const Gameboard: React.FC = () => {
         setBoardState(newState);
         setTurn(turn === "x" ? "o" : "x");
         socket.emit("clientmove", { id: id });
+        checkWin(newState);
     };
-
+useEffect(() => {
     socket.on("game", (arg) => {
         setPlaying(arg.start);
         setTurn(arg.move);
@@ -85,10 +106,12 @@ export const Gameboard: React.FC = () => {
     });
 
     socket.on("servermove", (arg) => {
+        console.log("servermove")
         setTurn(turn === "x" ? "o" : "x");
         const newState = boardState.slice();
         newState[arg.id] = letter === "x" ? "o" : "x";
         setBoardState(newState);
+        checkWin(newState);
     });
 
     socket.on("playagain", (arg) => {
@@ -102,6 +125,7 @@ export const Gameboard: React.FC = () => {
         setPlaying(true);
         setLetter(arg.first === position ? "x" : "o");
     });
+}, [boardState, checkWin, letter, position, turn])
 
     return (
         <>
@@ -128,20 +152,18 @@ export const Gameboard: React.FC = () => {
             ) : null}
             <BoardWrapper>
                 {Array.from({ length: 9 }, (_, i) => i + 1).map(
-                    (id: number, i) => {
-                        return (
-                            <SquareTile
-                                key={i}
-                                isLine={!!liney?.includes(id)}
-                                id={id}
-                                display={boardState[id]}
-                                press={() => {
-                                    if (boardState[id] !== null) return;
-                                    handleClick(id);
-                                }}
-                            />
-                        );
-                    }
+                    (id: number, i) => (
+                        <SquareTile
+                            key={i}
+                            isLine={!!liney?.includes(id)}
+                            id={id}
+                            display={boardState[id]}
+                            press={() => {
+                                if (boardState[id] !== null) return;
+                                handleClick(id);
+                            }}
+                        />
+                    )
                 )}
             </BoardWrapper>
             <JoinGameTexts />
